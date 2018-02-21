@@ -1,0 +1,4 @@
+boto3===1.4.3
+requests===2.18.4
+numpy===1.14.0
+git+git://github.com/cparmet/biopython.git#egg=biopython

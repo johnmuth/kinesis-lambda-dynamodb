@@ -1,0 +1,8 @@
+version: '2'
+services:
+  pubmed-search:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/src
