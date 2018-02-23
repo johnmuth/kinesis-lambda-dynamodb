@@ -31,6 +31,13 @@
                 {
                   "Effect": "Allow",
                   "Action": [
+                    "kinesis:*"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
                     "dynamodb:*"
                   ],
                   "Resource": "*"
@@ -63,11 +70,11 @@
         "RoleName": "KinesisLambdaDynamoDBRole"
       }
     },
-    "KinesisStream": {
+    "PubmedSearchResultsKinesisStream": {
       "Type": "AWS::Kinesis::Stream",
       "Properties": {
         "ShardCount": "2",
-        "StreamName": "PubmedSearchResults"
+        "Name": "PubmedSearchResults"
       }
     },
     "PubmedRecordDynamoDBTable": {
@@ -89,7 +96,7 @@
           "ReadCapacityUnits": "10",
           "WriteCapacityUnits": "5"
         },
-        "TableName": "PubmedRecord"
+        "TableName": "PubmedRecordKLD2"
       }
     },
     "PubmedSearchLambda": {
@@ -100,7 +107,7 @@
           "S3Key": "pubmed-search-lambda.zip"
         },
         "Description": "Runs a search in pubmed, sends results to Kinesis",
-        "FunctionName": "PubmedSearchKLD",
+        "FunctionName": "PubmedSearchKLD2",
         "Handler": "pubmed_search.handler",
         "Role": {
           "Fn::GetAtt": [
@@ -121,7 +128,7 @@
           "S3Key": "pubmed-fetch-lambda.zip"
         },
         "Description": "Fetches search results from pubmed, saves record to DynamoDB",
-        "FunctionName": "PubmedSearchKLD",
+        "FunctionName": "PubmedFetchKLD2",
         "Handler": "pubmed_fetch.handler",
         "Role": {
           "Fn::GetAtt": [
@@ -133,6 +140,23 @@
         "MemorySize": 1536,
         "Timeout": 300
       }
+    },
+    "PubmedSearchResultsEventSourceMapping": {
+      "Type": "AWS::Lambda::EventSourceMapping",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "PubmedFetchLambda"
+        },
+        "Enabled": true,
+        "EventSourceArn": {
+          "Fn::GetAtt": [
+            "PubmedSearchResultsKinesisStream",
+            "Arn"
+          ]
+        },
+        "StartingPosition": "TRIM_HORIZON"
+      }
     }
   }
+
 }

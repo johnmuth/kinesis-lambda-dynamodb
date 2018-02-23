@@ -4,6 +4,7 @@ from datetime import datetime
 import json
 from Bio import Entrez
 import sys
+import uuid
 
 Entrez.email = "support@evidentiapublishing.com"
 Entrez.cache = "/tmp/"
@@ -27,6 +28,7 @@ def pubmed_search(search):
     logger.debug('Got {} results. web_env={} query_key={})'.format(str(count), web_env, query_key))
     record_num = 0
     put_num = 0
+    search_result_set_id = uuid.uuid1().hex
     for start_result_num in range(1, count, records_per_put * results_per_record):
         put_num += 1
         end_result_num = min(start_result_num + (records_per_put * results_per_record), count)
@@ -41,6 +43,7 @@ def pubmed_search(search):
                     'end': last_result_num,
                     'web_env': web_env,
                     'query_key': query_key,
+                    'search_result_set_id': search_result_set_id
                 }),
                 'PartitionKey': partition_key
             })
@@ -52,6 +55,8 @@ def pubmed_search(search):
 
 
 def get_message_attribute(event, attribute):
+    if attribute in event:
+        return event[attribute]
     if 'Records' not in event:
         raise Exception('No element Records in event: %s', json.dumps(event, default=json_serial))
     for record in event['Records']:

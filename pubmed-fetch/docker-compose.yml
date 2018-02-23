@@ -1,6 +1,6 @@
 version: '2'
 services:
-  pubmed-search:
+  pubmed-fetch:
     build:
       context: .
       dockerfile: Dockerfile
